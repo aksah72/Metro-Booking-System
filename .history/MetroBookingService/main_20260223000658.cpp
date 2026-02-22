@@ -222,7 +222,7 @@ int main() {
     // =====================================
     // START SERVER
     // =====================================
-    server.set_mount_point("/ui", "./ui");
+    
     std::cout << "Server running at http://localhost:9090\n";
     server.listen("0.0.0.0",9090);
 

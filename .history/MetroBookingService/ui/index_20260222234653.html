@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Metro App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    color:white;
+    overflow-x:hidden;
+    position:relative;
+    background:linear-gradient(135deg,#1f3c88,#39a2db);
+}
+
+/* Background Metro Image */
+body::before{
+    content:"";
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,0.05) 0px,
+            rgba(255,255,255,0.05) 2px,
+            transparent 2px,
+            transparent 60px
+        );
+    animation: slide 20s linear infinite;
+    z-index:-1;
+}
+
+@keyframes slide{
+    from{ background-position:0 0; }
+    to{ background-position:1000px 0; }
+}
+
+/* Dark overlay */
+body::after{
+    content:"";
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:linear-gradient(135deg,#1f3c88,#39a2db);
+    opacity:0.85;
+    z-index:-1;
+}
+
+/* Animation */
+@keyframes moveMetro {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+.app-container{
+max-width:420px;
+margin:auto;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+.app-header{
+padding:20px;
+font-size:22px;
+font-weight:600;
+text-align:center;
+}
+
+.card-box{
+background:white;
+color:black;
+border-radius:25px;
+padding:20px;
+margin:15px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+}
+
+.booking-summary{
+background:#f8f9fa;
+padding:15px;
+border-radius:15px;
+}
+
+.metro-map{
+position:relative;
+padding-left:40px;
+margin-top:20px;
+}
+
+.station{
+position:relative;
+margin-bottom:25px;
+font-weight:500;
+}
+
+.station::before{
+content:"";
+position:absolute;
+left:-28px;
+top:4px;
+width:16px;
+height:16px;
+border-radius:50%;
+background:#007bff;
+}
+
+.source::before{background:#28a745;}
+.destination::before{background:#dc3545;}
+.interchange::before{
+background:#ffc107;
+border:3px solid black;
+}
+
+.line-Y::before{background:#f1c40f !important;}
+.line-B::before{background:#3498db !important;}
+.line-R::before{background:#e74c3c !important;}
+</style>
+</head>
+
+<body>
+
+<div class="app-container">
+
+<div class="app-header">🚇 Metro Booking</div>
+
+<!-- LOGIN / REGISTER -->
+<div id="authSection" class="card-box">
+<h5 id="authTitle">Login</h5>
+
+<select id="source" class="form-select mb-2"></select>
+<select id="destination" class="form-select mb-3"></select>
+
+<button class="btn btn-primary w-100 mb-2" onclick="login()">Login</button>
+<button class="btn btn-outline-secondary w-100 mb-2" onclick="register()">Register</button>
+
+<div id="authMessage" class="mt-2 text-danger"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
+
+<div class="card-box">
+<h6>Book Ticket</h6>
+<input type="text" id="source" class="form-control mb-2" placeholder="From">
+<input type="text" id="destination" class="form-control mb-3" placeholder="To">
+<button class="btn btn-success w-100" onclick="createBooking()">Find Route</button>
+</div>
+
+<div id="routeSection" class="card-box" style="display:none;">
+<h6>Route Details</h6>
+<div id="bookingSummary" class="booking-summary mb-3"></div>
+<div id="metroMap" class="metro-map"></div>
+<div id="qrContainer" style="margin-top:20px;text-align:center;"></div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let authToken="";
+let currentBookingId="";
+
+async function register(){
+
+const res = await fetch("/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:email.value,
+password:password.value
+})
+});
+
+const data = await res.json();
+
+if(data.error){
+authMessage.innerText = data.error;
+}else{
+authMessage.innerText = "Registered successfully. Please login.";
+}
+}
+
+async function login(){
+
+const res = await fetch("/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:email.value,
+password:password.value
+})
+});
+
+const data = await res.json();
+
+if(data.token){
+authToken = data.token;
+authSection.style.display="none";
+dashboard.style.display="block";
+}else{
+authMessage.innerText="Invalid email or password";
+}
+}
+
+
+async function createBooking(){
+
+const res = await fetch("/booking",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":authToken
+},
+body:JSON.stringify({
+source:source.value,
+destination:destination.value
+})
+});
+
+const data = await res.json();
+
+if(data.error){
+alert(data.error);
+return;
+}
+
+currentBookingId = data.bookingId;
+routeSection.style.display="block";
+
+bookingSummary.innerHTML = `
+<strong>Fare:</strong> ₹ ${data.fare}<br>
+<strong>Duration:</strong> ${data.duration} mins<br>
+<strong>Transfers:</strong> ${data.transfers}
+<br><br>
+<button class="btn btn-primary w-100" onclick="makePayment()">
+Pay Now
+</button>
+`;
+
+renderRoute(data.segments);
+document.getElementById("qrContainer").innerHTML="";
+}
+
+function renderRoute(segments){
+
+const metroMap = document.getElementById("metroMap");
+metroMap.innerHTML="";
+
+let interchangeStations=[];
+
+if(segments.length>1){
+for(let i=1;i<segments.length;i++){
+interchangeStations.push(segments[i].stops[0]);
+}
+}
+
+segments.forEach(seg=>{
+
+seg.stops.forEach(station=>{
+
+let div=document.createElement("div");
+div.className="station line-"+seg.line;
+
+if(station===segments[0].stops[0])
+div.classList.add("source");
+
+if(station===segments[segments.length-1].stops.slice(-1)[0])
+div.classList.add("destination");
+
+if(interchangeStations.includes(station)){
+div.classList.add("interchange");
+div.innerText=station+" (Interchange)";
+}else{
+div.innerText=station;
+}
+
+metroMap.appendChild(div);
+
+});
+
+});
+}
+
+async function makePayment(){
+
+const res = await fetch("/pay",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":authToken
+},
+body:JSON.stringify({bookingId:currentBookingId})
+});
+
+const data = await res.json();
+
+if(data.error){
+alert(data.error);
+return;
+}
+
+alert("Payment Successful ✅");
+
+const qrDiv=document.getElementById("qrContainer");
+qrDiv.innerHTML="";
+
+if(data.qr){
+new QRCode(qrDiv,{
+text:data.qr,
+width:150,
+height:150
+});
+}else{
+qrDiv.innerHTML="<p style='color:red;'>QR not received from server</p>";
+}
+}
+
+</script>
+
+</body>
+</html>
