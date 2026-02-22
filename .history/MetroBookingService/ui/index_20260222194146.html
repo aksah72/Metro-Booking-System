@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Metro App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#1f3c88,#39a2db);
+color:white;
+}
+
+.app-container{
+max-width:420px;
+margin:auto;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+.line-Y { background: #f1c40f !important; }
+.line-B { background: #3498db !important; }
+.line-R { background: #e74c3c !important; }
+
+.app-header{
+padding:20px;
+font-size:22px;
+font-weight:600;
+text-align:center;
+}
+
+.card-box{
+background:white;
+color:black;
+border-radius:25px;
+padding:20px;
+margin:15px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+}
+
+.booking-summary{
+background:#f8f9fa;
+padding:15px;
+border-radius:15px;
+}
+
+.bottom-nav{
+background:white;
+padding:10px;
+display:flex;
+justify-content:space-around;
+border-top-left-radius:20px;
+border-top-right-radius:20px;
+box-shadow:0 -3px 15px rgba(0,0,0,0.2);
+}
+
+.nav-item{
+font-size:14px;
+text-align:center;
+color:#555;
+cursor:pointer;
+}
+
+.metro-map{
+position:relative;
+padding-left:40px;
+margin-top:20px;
+}
+
+.metro-line{
+position:absolute;
+left:15px;
+top:0;
+width:6px;
+height:100%;
+background:#007bff;
+border-radius:3px;
+}
+
+.station{
+position:relative;
+margin-bottom:35px;
+font-weight:500;
+}
+
+.station::before{
+content:"";
+position:absolute;
+left:-28px;
+top:4px;
+width:18px;
+height:18px;
+border-radius:50%;
+background:#007bff;
+}
+
+.source::before{background:#28a745;}
+.destination::before{background:#dc3545;}
+.interchange::before{
+background:#ffc107;
+border:3px solid black;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app-container">
+
+<div class="app-header">🚇 Metro Booking</div>
+
+<!-- LOGIN -->
+<div id="authSection" class="card-box">
+<h5>Welcome Back</h5>
+<input type="text" id="username" class="form-control mb-2" placeholder="Username">
+<input type="password" id="password" class="form-control mb-3" placeholder="Password">
+<button class="btn btn-primary w-100 mb-2" onclick="login()">Sign In</button>
+<button class="btn btn-outline-secondary w-100" onclick="register()">Sign Up</button>
+<div id="authMessage" class="mt-2 text-danger"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
+
+<div class="card-box">
+<h6>Book Ticket</h6>
+<input type="text" id="source" class="form-control mb-2" placeholder="From">
+<input type="text" id="destination" class="form-control mb-3" placeholder="To">
+<button class="btn btn-success w-100" onclick="createBooking()">Find Route</button>
+</div>
+
+<div id="routeSection" class="card-box" style="display:none;">
+<h6>Route Details</h6>
+<div class="booking-summary mb-3" id="bookingSummary"></div>
+<div id="metroMap" class="metro-map"></div>
+</div>
+
+</div>
+
+<!-- TICKETS SECTION -->
+<div id="ticketsSection" class="card-box" style="display:none;">
+<h6>My Tickets</h6>
+<div id="ticketsList"></div>
+</div>
+
+<div class="bottom-nav">
+<div class="nav-item" onclick="showHome()">🏠 Home</div>
+<div class="nav-item" onclick="loadTickets()">🎟 Tickets</div>
+<div class="nav-item">👤 Profile</div>
+</div>
+
+</div>
+
+<script>
+
+let authToken="";
+let currentBookingId="";
+
+async function login(){
+const res=await fetch("/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+username:username.value,
+password:password.value
+})
+});
+const data=await res.json();
+
+if(data.token){
+authToken=data.token;
+authSection.style.display="none";
+dashboard.style.display="block";
+}else{
+authMessage.innerText="Invalid login";
+}
+}
+
+async function register(){
+const res=await fetch("/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+username:username.value,
+password:password.value
+})
+});
+const data=await res.json();
+authMessage.innerText=data.message||data.error;
+}
+
+async function createBooking(){
+
+const res = await fetch("/booking",{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json",
+        "Authorization":authToken
+    },
+    body:JSON.stringify({
+        source:source.value,
+        destination:destination.value
+    })
+});
+
+const data = await res.json();
+
+if(data.error){
+    alert(data.error);
+    return;
+}
+
+currentBookingId = data.bookingId;
+
+routeSection.style.display="block";
+
+/* ---- SHOW DETAILS ---- */
+
+bookingSummary.innerHTML = `
+<strong>Fare:</strong> ₹ ${data.fare}<br>
+<strong>Duration:</strong> ${data.duration} mins<br>
+<strong>Transfers:</strong> ${data.transfers}
+<br><br>
+<button class="btn btn-primary w-100" onclick="makePayment()">
+Pay Now
+</button>
+`;
+
+/* ---- SHOW ROUTE GRAPH ---- */
+
+renderRoute(data.segments);
+
+/* ---- PREPARE QR AREA ---- */
+
+document.getElementById("qrContainer").innerHTML = "";
+}
+
+
+
+async function makePayment(){
+const res=await fetch("/pay",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":authToken
+},
+body:JSON.stringify({bookingId:currentBookingId})
+});
+const data=await res.json();
+
+if(data.error){
+alert(data.error);
+return;
+}
+
+alert("Payment Successful ✅");
+loadTickets();
+}
+
+async function loadTickets(){
+dashboard.style.display="none";
+ticketsSection.style.display="block";
+
+const res=await fetch("/bookings",{
+headers:{"Authorization":authToken}
+});
+const data=await res.json();
+
+ticketsList.innerHTML="";
+
+if(data.length===0){
+ticketsList.innerHTML="No bookings yet.";
+return;
+}
+
+data.forEach(ticket=>{
+ticketsList.innerHTML+=`
+<div class="booking-summary mb-3">
+<strong>${ticket.source} → ${ticket.destination}</strong><br>
+Fare: ₹ ${ticket.fare}<br>
+Status: ${ticket.status}
+</div>
+`;
+});
+}
+
+function showHome(){
+ticketsSection.style.display="none";
+dashboard.style.display="block";
+}
+
+function renderTimeline(route, segments){
+
+const metroMap = document.getElementById("metroMap");
+metroMap.innerHTML = "";
+
+const line = document.createElement("div");
+line.className = "metro-line";
+metroMap.appendChild(line);
+
+let interchangeStations = [];
+
+if(segments.length > 1){
+    for(let i=1;i<segments.length;i++){
+        interchangeStations.push(segments[i].stops[0]);
+    }
+}
+
+segments.forEach(seg => {
+
+    seg.stops.forEach((station,index) => {
+
+        const div = document.createElement("div");
+        div.className = "station";
+
+        div.classList.add("line-" + seg.line);
+
+        if(route[0] === station)
+            div.classList.add("source");
+        else if(route[route.length-1] === station)
+            div.classList.add("destination");
+
+        if(interchangeStations.includes(station)){
+            div.classList.add("interchange");
+            div.innerText = station + " (Interchange)";
+        } else {
+            div.innerText = station;
+        }
+
+        metroMap.appendChild(div);
+    });
+
+});
+}
+
+</script>
+
+</body>
+</html>

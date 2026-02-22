@@ -1,0 +1,184 @@
+[
+    {
+        "bookingId": "B1",
+        "destination": "E",
+        "fare": 23,
+        "path": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+        ],
+        "qr": "14662831012924352602",
+        "source": "A",
+        "transfers": 1,
+        "user": "admin"
+    },
+    {
+        "bookingId": "B1",
+        "destination": "E",
+        "fare": 23,
+        "path": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+        ],
+        "qr": "1005496615776167407",
+        "source": "A",
+        "transfers": 1,
+        "user": "aksah"
+    },
+    {
+        "bookingId": "B2",
+        "destination": "E",
+        "fare": 21,
+        "path": [
+            "B",
+            "C",
+            "D",
+            "E"
+        ],
+        "qr": "14148923015884985472",
+        "source": "B",
+        "transfers": 1,
+        "user": "aman"
+    },
+    {
+        "bookingId": "B3",
+        "destination": "C",
+        "fare": 14,
+        "path": [
+            "A",
+            "B",
+            "C"
+        ],
+        "qr": "6262108154731417918",
+        "source": "A",
+        "transfers": 0,
+        "user": "aman"
+    },
+    {
+        "bookingId": "B4",
+        "destination": "E",
+        "fare": 23,
+        "path": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+        ],
+        "qr": "15875673626994360949",
+        "source": "A",
+        "transfers": 1,
+        "user": "aman"
+    },
+    {
+        "bookingId": "B1",
+        "destination": "E",
+        "fare": 23,
+        "path": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+        ],
+        "qr": "4439266397308933284",
+        "source": "A",
+        "transfers": 1,
+        "user": "aman"
+    },
+    {
+        "bookingId": "B2",
+        "destination": "D",
+        "fare": 21,
+        "path": [
+            "A",
+            "B",
+            "C",
+            "D"
+        ],
+        "qr": "4497918426900486034",
+        "source": "A",
+        "transfers": 1,
+        "user": "aman"
+    },
+    {
+        "bookingId": "B3",
+        "destination": "A",
+        "fare": 23,
+        "path": [
+            "E",
+            "D",
+            "C",
+            "B",
+            "A"
+        ],
+        "qr": "13277321518739478918",
+        "source": "E",
+        "transfers": 1,
+        "user": "aman"
+    },
+    {
+        "bookingId": "B4",
+        "destination": "C",
+        "fare": 14,
+        "path": [
+            "A",
+            "B",
+            "C"
+        ],
+        "qr": "13634244634902904498",
+        "source": "A",
+        "transfers": 0,
+        "user": "aman"
+    },
+    {
+        "bookingId": "B1",
+        "destination": "C",
+        "fare": 14,
+        "path": [
+            "A",
+            "B",
+            "C"
+        ],
+        "qr": "13663153345770991144",
+        "source": "A",
+        "transfers": 0,
+        "user": "admin"
+    },
+    {
+        "bookingId": "B1",
+        "destination": "C",
+        "fare": 14,
+        "path": [
+            "A",
+            "B",
+            "C"
+        ],
+        "qr": "8428695656565462981",
+        "source": "A",
+        "transfers": 0,
+        "user": "admin"
+    },
+    {
+        "bookingId": "B1",
+        "destination": "E",
+        "fare": 23,
+        "path": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+        ],
+        "qr": "3645311783942694101",
+        "source": "A",
+        "transfers": 1,
+        "user": "aman"
+    }
+]
