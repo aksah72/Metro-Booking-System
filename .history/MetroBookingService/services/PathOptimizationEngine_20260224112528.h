@@ -24,13 +24,12 @@ class PathOptimizationEngine {
 public:
 
     int transferPenalty = 5;
-    string time = "10:00";
+    string time = 
 
     PathResult computePath(
         MetroRouteService &metro,
         string source,
-        string destination,
-        string additionalTime
+        string destination
     ) {
 
         unordered_map<string, int> dist;
@@ -123,26 +122,7 @@ public:
                         segments.size() - 1 : 0;
 
         int totalTime = dist[destination];
-        int hour = 0,min =0;
-        for(char c: time){
-            if(c == ':' & hour!= 0){
-                int d = c - '0';
-                min = 10*min+d;
-            }
-            else {
-                int d = c -'0';
-                hour = 10*hour+d;
-            }
-        }
-        min += totalTime;
-        if(min>=60){
-            hour += min/60;
-            min = min - min%60;
-        }
-        additionalTime = to_string(hour)+":"+to_string(min);
 
-
-
-        return {path, segments, transfers, totalTime, additionalTime};
+        return {path, segments, transfers, totalTime};
     }
 };

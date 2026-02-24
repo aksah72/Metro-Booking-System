@@ -54,7 +54,7 @@ public:
         // COMPUTE PATH
         // ======================
         PathResult result =
-            engine.computePath(metro, source, destination,finalTime);
+            engine.computePath(metro, source, destination,final);
 
         if (result.path.empty()) {
             response["error"] = "No route available";

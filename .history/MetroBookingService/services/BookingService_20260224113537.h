@@ -54,7 +54,7 @@ public:
         // COMPUTE PATH
         // ======================
         PathResult result =
-            engine.computePath(metro, source, destination,finalTime);
+            engine.computePath(metro, source, destination);
 
         if (result.path.empty()) {
             response["error"] = "No route available";
@@ -115,7 +115,7 @@ public:
         response["transfers"] = result.transfers;
         response["duration"] = result.totalTime;
         response["fare"] = fare;
-        response["Time"] = finalTime;
+        response["Time"] = 
         response["qr"] = qr;
         response["status"] = "PENDING";
 

@@ -29,8 +29,7 @@ public:
     PathResult computePath(
         MetroRouteService &metro,
         string source,
-        string destination,
-        string additionalTime
+        string destination
     ) {
 
         unordered_map<string, int> dist;
@@ -137,12 +136,11 @@ public:
         min += totalTime;
         if(min>=60){
             hour += min/60;
-            min = min - min%60;
         }
-        additionalTime = to_string(hour)+":"+to_string(min);
+        string additionalTime = to_string(totalTime);
 
 
 
-        return {path, segments, transfers, totalTime, additionalTime};
+        return {path, segments, transfers, totalTime};
     }
 };
